@@ -17,7 +17,7 @@ import { StatelessResourceStack } from '../stacks/stateless-resources';
 // import { NonProductionStack } from '../stacks/non-production';
 
 interface AppStageProps extends StageProps {
-	deployEnv: "dev" | "stg" | "prod",
+	deployEnv: "dev" | "prod",
 	infraStatus: "on" | "off",
 }
 

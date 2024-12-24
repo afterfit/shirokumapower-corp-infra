@@ -16,7 +16,7 @@ import { envConstants, commonConstants } from '../parameters/constants';
 
 
 interface BaseNetworkProps extends StackProps {
-  deployEnv: "dev" | "stg" |"prod",
+  deployEnv: "dev" |"prod",
 }
 
 export class BaseNetworkStack extends Stack {
@@ -26,7 +26,7 @@ export class BaseNetworkStack extends Stack {
     super(scope, id, props);
     const { deployEnv } = props;
 
-    const eipAllocationIds = this.createEipAllocationIds(deployEnv);
+    // const eipAllocationIds = this.createEipAllocationIds(deployEnv);
 
     this.vpc = new ec2.Vpc(this, `${deployEnv}-${commonConstants.project}-vpc`, {
       vpcName: `${deployEnv}-${commonConstants.project}-vpc`,
@@ -40,12 +40,12 @@ export class BaseNetworkStack extends Stack {
         },
         {
           name: "private",
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
           cidrMask: 24,
         },
       ],
-      natGateways: eipAllocationIds.length,
-      natGatewayProvider: ec2.NatProvider.gateway({ eipAllocationIds: eipAllocationIds }),
+      // natGateways: eipAllocationIds.length,
+      // natGatewayProvider: ec2.NatProvider.gateway({ eipAllocationIds: eipAllocationIds }),
     });
 
     this.hostZone = new route53.HostedZone(this, `${deployEnv}-${commonConstants.project}-host-zone`, {
@@ -53,13 +53,13 @@ export class BaseNetworkStack extends Stack {
     });
   }
 
-  private createEipAllocationIds(deployEnv: string): string[] {
-    const eipAddress1 = new ec2.CfnEIP(this, `${deployEnv}-eip-1-address`);
-    if (deployEnv === "prod") {
-      const eipAddress2 = new ec2.CfnEIP(this, `${deployEnv}-eip-2-address`);
-      return [eipAddress1.attrAllocationId, eipAddress2.attrAllocationId];
-    } 
-    return [eipAddress1.attrAllocationId];
-  }
+  // private createEipAllocationIds(deployEnv: string): string[] {
+  //   const eipAddress1 = new ec2.CfnEIP(this, `${deployEnv}-eip-1-address`);
+  //   if (deployEnv === "prod") {
+  //     const eipAddress2 = new ec2.CfnEIP(this, `${deployEnv}-eip-2-address`);
+  //     return [eipAddress1.attrAllocationId, eipAddress2.attrAllocationId];
+  //   } 
+  //   return [eipAddress1.attrAllocationId];
+  // }
 
 }

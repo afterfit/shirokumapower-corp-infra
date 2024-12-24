@@ -34,7 +34,7 @@ import * as path from 'path';
 
 
 interface StatelessResourceProps extends StackProps {
-  deployEnv: "dev" | "stg" |"prod",
+  deployEnv: "dev" | "prod",
   vpc: ec2.Vpc;
   hostZone: route53.HostedZone;
 }
@@ -207,9 +207,20 @@ export class StatelessResourceStack extends Stack {
     /**
      * Cloudfront Distributions
      */
+
+    //Origin Access Control
     const s3OAC = new cloudfront.S3OriginAccessControl(this, `frontend-s3-oac-${deployEnv}`, {
       signing: cloudfront.Signing.SIGV4_NO_OVERRIDE,
     });
+
+    //Viewer request function
+    const frontendFunction = new cloudfront.Function(this, `frontend-replace-fn-${deployEnv}`, {
+      functionName: `homepage-html-append-${deployEnv}`,
+      code: cloudfront.FunctionCode.fromFile({filePath: path.join(__dirname, "../../assets/cloudfront-fix.js")}),
+      // Note that JS_2_0 must be used for Key Value Store support
+      runtime: cloudfront.FunctionRuntime.JS_2_0,
+    });
+
     //Frontend Distribution
     const frontendCloudfront = new cloudfront.Distribution(this, `frontend-cloudfront-${deployEnv}`, {
       defaultRootObject: 'index.html',
@@ -220,6 +231,10 @@ export class StatelessResourceStack extends Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        functionAssociations: [{
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          function: frontendFunction,
+        }]
       },
       ...deployEnv === "prod" && {
         enableLogging: true,
@@ -278,8 +293,8 @@ export class StatelessResourceStack extends Stack {
     }));
 
     //Pipeline
-    const pipelineApi = new codepipeline.Pipeline(this, `frontend-pipeline-${deployEnv}`, {
-      pipelineName: `frontend-pipeline-${deployEnv}`,
+    const pipelineFrontend = new codepipeline.Pipeline(this, `homepage-frontend-pipeline-${deployEnv}`, {
+      pipelineName: `homepage-frontend-pipeline-${deployEnv}`,
       stages: [
         {
           stageName: "Source",
@@ -311,7 +326,7 @@ export class StatelessResourceStack extends Stack {
       ],
       crossAccountKeys: false
     });
-    pipelineApi.artifactBucket.applyRemovalPolicy(RemovalPolicy.DESTROY);
+    pipelineFrontend.artifactBucket.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
 
   }

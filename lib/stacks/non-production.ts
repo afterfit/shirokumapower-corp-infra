@@ -18,7 +18,7 @@ import { Construct } from 'constructs';
 import { commonConstants } from '../parameters/constants';
 
 interface NonProductionProps extends StackProps {
-	deployEnv: "dev" | "stg",
+	deployEnv: "dev",
 	backendService: ecs.FargateService,
 	cluster: ecs.Cluster,
 	database: rds.DatabaseInstance,

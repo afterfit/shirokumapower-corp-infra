@@ -12,12 +12,7 @@ export const commonConstants = {
 export const envConstants = {
 	"dev": {
 			cidr: "10.55.0.0/16",
-			domain: "dev-corp.shirokumapower.site",
-			codeBranch: "main"
-	},
-	"stg": {
-			cidr: "10.56.0.0/16",
-			domain: "stg-corp.shirokumapower.site",
+			domain: "corp.shirokumapower.site",
 			codeBranch: "main"
 	},
 	"prod": {
