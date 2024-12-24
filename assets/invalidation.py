@@ -7,6 +7,7 @@ cloud_front = boto3.client("cloudfront")
 
 def lambda_handler(event, context):
     job_id = event["CodePipeline.job"]["id"]
+    print(event)
     try:
         user_params = json.loads(
             event["CodePipeline.job"]

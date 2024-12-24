@@ -6,23 +6,23 @@
  */
 
 export const commonConstants = {
-	project: "template",
+	project: "parallax-homepage",
 }
 
 export const envConstants = {
 	"dev": {
-			cidr: "10.0.0.0/16",
-			domain: "dev.template.com",
-			codeBranch: "develop"
+			cidr: "10.55.0.0/16",
+			domain: "dev-corp.shirokumapower.site",
+			codeBranch: "main"
 	},
 	"stg": {
-			cidr: "10.1.0.0/16",
-			domain: "stg.template.com",
-			codeBranch: "staging"
+			cidr: "10.56.0.0/16",
+			domain: "stg-corp.shirokumapower.site",
+			codeBranch: "main"
 	},
 	"prod": {
-			cidr: "10.2.0.0/16",
-			domain: "template.com",
+			cidr: "10.57.0.0/16",
+			domain: "corp.shirokumapower.com",
 			codeBranch: "main"
 	}
 }
