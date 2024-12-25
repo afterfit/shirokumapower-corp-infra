@@ -23,6 +23,9 @@ interface AppStageProps extends StageProps {
 }
 
 export class AppStage extends Stage {
+	public readonly	baseNetworkStack: BaseNetworkStack;
+	public readonly	statefulResourceStack: StatefulResourceStack;
+	public readonly	statelessResourceStack: StatelessResourceStack;
 	constructor(scope: Construct, id: string, props: AppStageProps) {
 		super(scope, id, props)
 
@@ -36,11 +39,11 @@ export class AppStage extends Stage {
 		 * VPC itself should not be delete and should be available till the end of project life cycle.
 		 * Should be things that's free
 		 *  */
-		const baseNetworkStack = new BaseNetworkStack(this, 'base-network', {
+		this.baseNetworkStack = new BaseNetworkStack(this, 'base-network', {
 			deployEnv: deployEnv,
 			terminationProtection: deployEnv == "prod" ? true : false,
 		});
-		Tags.of(baseNetworkStack).add("env", deployEnv);
+		Tags.of(this.baseNetworkStack).add("env", deployEnv);
 
 		/**
 		 * The stateFUL stack
@@ -48,13 +51,13 @@ export class AppStage extends Stage {
 		 * Most of the time should just be AWS RDS databases.
 		 * Delete protection should be on for production and off otherwise.
 		 *  */
-		const statefulResourceStack = new StatefulResourceStack(this, 'stateful-resources', {
-			deployEnv: deployEnv,
-			vpc: baseNetworkStack.vpc, //reference resource from difference stack can make stack interlock, so be careful!
-			terminationProtection: deployEnv == "prod" ? true : false,
-		});
-		statefulResourceStack.addDependency(baseNetworkStack);
-		Tags.of(statefulResourceStack).add("env", deployEnv);
+		// this.statefulResourceStack = new StatefulResourceStack(this, 'stateful-resources', {
+		// 	deployEnv: deployEnv,
+		// 	vpc: this.baseNetworkStack.vpc, //reference resource from difference stack can make stack interlock, so be careful!
+		// 	terminationProtection: deployEnv == "prod" ? true : false,
+		// });
+		// this.statefulResourceStack.addDependency(this.baseNetworkStack);
+		// Tags.of(this.statefulResourceStack).add("env", deployEnv);
 
 
 		/**
@@ -66,14 +69,14 @@ export class AppStage extends Stage {
 		 * Load Balancer, EC2, ECS, Lambda, Code Pipeline, etc..
 		 * If you have too many lambda functions, you can write in into a difference file.
 		 *  */
-		const statelessResourceStack = new StatelessResourceStack(this, 'stateless-resources', {
+		this.statelessResourceStack = new StatelessResourceStack(this, 'stateless-resources', {
 			deployEnv: deployEnv,
-			vpc: baseNetworkStack.vpc,
-			hostZone: baseNetworkStack.hostZone,
+			vpc: this.baseNetworkStack.vpc,
+			hostZone: this.baseNetworkStack.hostZone,
 			terminationProtection: deployEnv == "prod" ? true : false,
 		});
-		statelessResourceStack.addDependency(baseNetworkStack);
-		Tags.of(statelessResourceStack).add("env", deployEnv);
+		this.statelessResourceStack.addDependency(this.baseNetworkStack);
+		Tags.of(this.statelessResourceStack).add("env", deployEnv);
 
 		/**
 		 * The NON Production stack

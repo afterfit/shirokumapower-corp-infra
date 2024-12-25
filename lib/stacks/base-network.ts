@@ -49,7 +49,8 @@ export class BaseNetworkStack extends Stack {
     });
 
     this.hostZone = new route53.HostedZone(this, `${deployEnv}-${commonConstants.project}-host-zone`, {
-      zoneName: envConstants[deployEnv].domain
+      zoneName: envConstants[deployEnv].domain,
+      comment: `Hosted Zone for corp site ${deployEnv} environment`,
     });
   }
 

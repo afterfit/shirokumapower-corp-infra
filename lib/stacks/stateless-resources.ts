@@ -48,7 +48,7 @@ export class StatelessResourceStack extends Stack {
      * Log bucket (in early stage of development, maybe it's best to set DESTROY RemovalPolicy)
      */
     const loggingBucket = new s3.Bucket(this, `logging-bucket-${deployEnv}`, {
-      bucketName: `${commonConstants.project}-logging-bucket`,
+      bucketName: `${commonConstants.project}-logging-bucket-${deployEnv}`,
       objectOwnership: s3.ObjectOwnership.OBJECT_WRITER
     });
     loggingBucket.applyRemovalPolicy(RemovalPolicy.DESTROY);
@@ -57,7 +57,7 @@ export class StatelessResourceStack extends Stack {
      * Frontend bucket
      */
     const frontendBucket = new s3.Bucket(this, `frontend-bucket-${deployEnv}`, {
-      bucketName: `${commonConstants.project}-frontend-bucket`,
+      bucketName: `${commonConstants.project}-frontend-bucket-${deployEnv}`,
       objectOwnership: s3.ObjectOwnership.OBJECT_WRITER
     });
     /**
@@ -73,7 +73,7 @@ export class StatelessResourceStack extends Stack {
 
     const cloudfrontCert = new certificatemanager.DnsValidatedCertificate(this, `${deployEnv}-${commonConstants.project}-cloudfront-cert`, {
       domainName: envConstants[deployEnv].domain,
-      subjectAlternativeNames: [`api.${envConstants[deployEnv].domain}`],
+      subjectAlternativeNames: [`*.${envConstants[deployEnv].domain}`],
       hostedZone: hostZone,
       // the properties below are set for validation in us-east-1
       region: 'us-east-1',
@@ -224,6 +224,7 @@ export class StatelessResourceStack extends Stack {
     //Frontend Distribution
     const frontendCloudfront = new cloudfront.Distribution(this, `frontend-cloudfront-${deployEnv}`, {
       defaultRootObject: 'index.html',
+      comment: `Frontend Distribution for ${deployEnv}`,
       defaultBehavior: {
         origin: cloudfront_origins.S3BucketOrigin.withOriginAccessControl(frontendBucket, {originAccessControl: s3OAC}),
         originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
