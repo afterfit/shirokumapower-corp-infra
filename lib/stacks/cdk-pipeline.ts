@@ -39,7 +39,10 @@ export class CdkPipelineStack extends Stack {
           connectionArn: config.githubConnection
         }
         ),
-        commands: ['npm ci', 'npm run build', 'npx cdk synth'],
+        commands: [
+          `aws ssm get-parameter --with-decryption --name /cdk/env --output text --query 'Parameter.Value' > .env`,
+          'npm ci', 'npm run build', 'npx cdk synth'
+        ],
       }),
     });
 
