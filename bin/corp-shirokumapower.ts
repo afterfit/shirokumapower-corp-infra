@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
-import { App, Tags } from 'aws-cdk-lib';
+import { App } from 'aws-cdk-lib';
 
 import { resolveConfig } from '../lib/parameters/env-config';
-import { AppStage } from '../lib/stages/app-stage';
+import { commonConstants } from '../lib/parameters/constants';
+import { CdkPipelineStack } from '../lib/stacks/cdk-pipeline';
 
 const app = new App();
 
@@ -13,28 +14,7 @@ const infraStatus = app.node.tryGetContext("infraStatus") != undefined ? app.nod
 if (infraStatus !== "on" && infraStatus !== "off") 
   throw new Error('Invalid infra status. Only accept on or off');
 
-// All environments' prefix. This will be supply to resources' name.
-const devEnv = "dev";
-const stgEnv = "stg";
-const prodEnv = "prod";
-
-/**
- * Development Environment
- */
-const devStage = new AppStage(app, devEnv, {
-  env: {account: config.awsAccount, region: config.region},
-  deployEnv: devEnv,
-  infraStatus: infraStatus
+const cdkPipelineStack = new CdkPipelineStack(app, 'CDKPipelineStack', {
+  env: { account: config.awsAccount, region: config.region },
+  infraStatus: infraStatus,
 });
-Tags.of(devStage).add("env", devEnv);
-
-
-/**
- * Production Environment
- */
-const prodStage = new AppStage(app, prodEnv, {
-  env: {account: config.awsAccount, region: config.region},
-  deployEnv: prodEnv,
-  infraStatus: "on"
-});
-Tags.of(prodStage).add("env", prodEnv);

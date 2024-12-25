@@ -8,6 +8,7 @@
 import {
 	Stage,
 	StageProps,
+	Tags,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 //Import stack(s)
@@ -39,6 +40,7 @@ export class AppStage extends Stage {
 			deployEnv: deployEnv,
 			terminationProtection: deployEnv == "prod" ? true : false,
 		});
+		Tags.of(baseNetworkStack).add("env", deployEnv);
 
 		/**
 		 * The stateFUL stack
@@ -52,6 +54,7 @@ export class AppStage extends Stage {
 			terminationProtection: deployEnv == "prod" ? true : false,
 		});
 		statefulResourceStack.addDependency(baseNetworkStack);
+		Tags.of(statefulResourceStack).add("env", deployEnv);
 
 
 		/**
@@ -70,6 +73,7 @@ export class AppStage extends Stage {
 			terminationProtection: deployEnv == "prod" ? true : false,
 		});
 		statelessResourceStack.addDependency(baseNetworkStack);
+		Tags.of(statelessResourceStack).add("env", deployEnv);
 
 		/**
 		 * The NON Production stack
