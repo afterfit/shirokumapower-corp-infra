@@ -2,6 +2,7 @@ import {
   pipelines as cdkpipeline,
   Stack,
   StackProps,
+  aws_iam as iam,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { commonConstants } from '../parameters/constants';
@@ -34,14 +35,22 @@ export class CdkPipelineStack extends Stack {
     });
 
     const cdkPipeline = new cdkpipeline.CodePipeline(this, `${commonConstants.project}-cdk-pipeline`, {
-      synth: new cdkpipeline.ShellStep(`project-synth`, {
+      synth: new cdkpipeline.CodeBuildStep(`project-synth`, {
         input: cdkpipeline.CodePipelineSource.connection('afterfit/shirokumapower-corp-infra', 'main', {
           connectionArn: config.githubConnection
-        }
-        ),
+        }),
         commands: [
           `aws ssm get-parameter --with-decryption --name /cdk/env --output text --query 'Parameter.Value' > .env`,
           'npm ci', 'npm run build', 'npx cdk synth'
+        ],
+        rolePolicyStatements: [
+          new iam.PolicyStatement({
+            resources: [
+              `arn:aws:ssm:${this.region}:${this.account}:parameter/cdk/env`,
+              `arn:aws:ssm:${this.region}:${this.account}:parameter/cdk/env`
+            ],
+            actions: ["ssm:GetParameter*"],
+          }),
         ],
       }),
     });
