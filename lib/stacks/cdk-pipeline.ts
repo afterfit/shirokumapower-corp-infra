@@ -19,6 +19,20 @@ export class CdkPipelineStack extends Stack {
     const { infraStatus } = props;
 
     const config = resolveConfig();
+    // Development Environment
+    const devStage = new AppStage(this, `cdk-pipeline-dev`, {
+      env: {account: config.awsAccount, region: config.region},
+      deployEnv: 'dev',
+      infraStatus: infraStatus,
+    });
+
+    // Production Environment
+    const prodStage = new AppStage(this, `cdk-pipeline-prod`, {
+      env: {account: config.awsAccount, region: config.region},
+      deployEnv: 'prod',
+      infraStatus: 'on',
+    });
+
     const cdkPipeline = new cdkpipeline.CodePipeline(this, `${commonConstants.project}-cdk-pipeline`, {
       synth: new cdkpipeline.ShellStep(`project-synth`, {
         input: cdkpipeline.CodePipelineSource.connection('afterfit/shirokumapower-corp-infra', 'main', {
@@ -29,18 +43,12 @@ export class CdkPipelineStack extends Stack {
       }),
     });
 
-    // Development Environment
-    const devStage = cdkPipeline.addStage(new AppStage(this, `cdk-pipeline-dev`, {
-      env: {account: config.awsAccount, region: config.region},
-      deployEnv: 'dev',
-      infraStatus: infraStatus,
-    }));
+    cdkPipeline.addStage(devStage);
 
-    // Production Environment
-    const prodStage = cdkPipeline.addStage(new AppStage(this, `cdk-pipeline-prod`, {
-      env: {account: config.awsAccount, region: config.region},
-      deployEnv: 'prod',
-      infraStatus: 'on',
-    }));
+
+    cdkPipeline.addStage(prodStage, {
+      pre: [new cdkpipeline.ManualApprovalStep('production-deployment-approval')],
+    });
+
   }
 }
