@@ -216,7 +216,7 @@ export class StatelessResourceStack extends Stack {
     //Viewer request function
     const frontendFunction = new cloudfront.Function(this, `frontend-replace-fn-${deployEnv}`, {
       functionName: `homepage-html-append-${deployEnv}`,
-      code: cloudfront.FunctionCode.fromFile({filePath: path.join(__dirname, "../../assets/cloudfront-fix.js")}),
+      code: cloudfront.FunctionCode.fromFile({filePath: path.join(__dirname, "../../assets/cloudfront-fix.mjs")}),
       // Note that JS_2_0 must be used for Key Value Store support
       runtime: cloudfront.FunctionRuntime.JS_2_0,
     });
