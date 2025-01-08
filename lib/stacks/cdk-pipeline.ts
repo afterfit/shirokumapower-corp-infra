@@ -45,8 +45,8 @@ export class CdkPipelineStack extends Stack {
           'pip3 install ansi2html',
           `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-dev/** | ansi2html > cdk-diff-output-dev.html`,
           `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-prod/** | ansi2html > cdk-diff-output-prod.html`,
-          `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/${commonConstants.project}/dev-${getFormattedDate()}.html`,
-          `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/${commonConstants.project}/prod-${getFormattedDate()}.html`,
+          `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/dev-${getFormattedDate()}.html`,
+          `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/prod-${getFormattedDate()}.html`,
         ],
         rolePolicyStatements: [
           new iam.PolicyStatement({
@@ -62,6 +62,45 @@ export class CdkPipelineStack extends Stack {
             ],
             actions: ["s3:PutObject"],
           }),
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+              'cloudformation:DescribeStacks',
+              'cloudformation:GetTemplate',
+              'cloudformation:ListStacks',
+              'cloudformation:DescribeStackEvents',
+              'cloudformation:DescribeStackResource',
+              'cloudformation:DescribeStackResources',
+              'cloudformation:GetTemplateSummary',
+              's3:ListBucket',
+              's3:GetObject',
+              's3:PutObject',
+              'ecr:DescribeRepositories',
+              'ecr:ListImages',
+              'ecr:BatchGetImage',
+              'ecr:GetDownloadUrlForLayer',
+              'sts:AssumeRole'
+            ],
+            resources: ['*']
+          }),
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+              'iam:GetRole',
+              'iam:GetRolePolicy',
+              'iam:ListRolePolicies',
+              'iam:ListAttachedRolePolicies'
+            ],
+            resources: ['*']
+          }),
+          new iam.PolicyStatement({
+            effect: iam.Effect.ALLOW,
+            actions: [
+              'ssm:GetParameter',
+              'ssm:GetParameters'
+            ],
+            resources: ['*']
+          })
         ],
       }),
     });
