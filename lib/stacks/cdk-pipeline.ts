@@ -43,10 +43,10 @@ export class CdkPipelineStack extends Stack {
           `aws ssm get-parameter --with-decryption --name /cdk/env --output text --query 'Parameter.Value' > .env`,
           'npm ci', 'npm run build', 'npx cdk synth',
           'pip3 install ansi2html',
-          `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-dev/** | ansi2html > cdk-diff-output-dev.html`,
-          `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-prod/** | ansi2html > cdk-diff-output-prod.html`,
-          `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/dev-${getFormattedDate()}.html`,
-          `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/prod-${getFormattedDate()}.html`,
+          `FORCE_COLOR=1 npx cdk diff "CDKPipelineStack/cdk-pipeline-dev/**" | ansi2html > cdk-diff-output-dev.html`,
+          `FORCE_COLOR=1 npx cdk diff "CDKPipelineStack/cdk-pipeline-prod/**" | ansi2html > cdk-diff-output-prod.html`,
+          `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/cdk-diff-output-dev.html`,
+          `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/cdk-diff-output-prod.html`,
           'rm -f cdk-diff-output*',
         ],
         rolePolicyStatements: [
@@ -108,32 +108,16 @@ export class CdkPipelineStack extends Stack {
 
     cdkPipeline.addStage(devStage, {
       pre: [new cdkpipeline.ManualApprovalStep('dev-deployment-approval', {
-        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=dev&date=${getFormattedDate()}`,
+        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=dev`,
       })],
     });
 
 
     cdkPipeline.addStage(prodStage, {
       pre: [new cdkpipeline.ManualApprovalStep('production-deployment-approval', {
-        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=prod&date=${getFormattedDate()}`,
+        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=prod`,
       })],
     });
 
   }
-}
-
-function getFormattedDate(): string {
-  const now = new Date();
-  
-  // Adjust to JST (UTC+9)
-  const jstOffset = 9 * 60; // JST is UTC+9
-  now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + jstOffset);
-  
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-
-  return `${year}${month}${day}-${hours}${minutes}`;
 }
