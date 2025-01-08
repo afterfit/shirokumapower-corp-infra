@@ -47,6 +47,7 @@ export class CdkPipelineStack extends Stack {
           `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-prod/** | ansi2html > cdk-diff-output-prod.html`,
           `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/dev-${getFormattedDate()}.html`,
           `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/diff-file/${commonConstants.project}/prod-${getFormattedDate()}.html`,
+          'rm -f cdk-diff-output*',
         ],
         rolePolicyStatements: [
           new iam.PolicyStatement({
