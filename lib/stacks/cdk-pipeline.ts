@@ -41,7 +41,8 @@ export class CdkPipelineStack extends Stack {
         }),
         commands: [
           `aws ssm get-parameter --with-decryption --name /cdk/env --output text --query 'Parameter.Value' > .env`,
-          'npm ci', 'npm run build', 'npx cdk synth'
+          'npm ci', 'npm run build', 'npx cdk synth',
+          'pip3 --version'
         ],
         rolePolicyStatements: [
           new iam.PolicyStatement({
