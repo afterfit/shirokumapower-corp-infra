@@ -42,7 +42,11 @@ export class CdkPipelineStack extends Stack {
         commands: [
           `aws ssm get-parameter --with-decryption --name /cdk/env --output text --query 'Parameter.Value' > .env`,
           'npm ci', 'npm run build', 'npx cdk synth',
-          'pip3 --version'
+          'pip3 install ansi2html',
+          `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-dev/** | ansi2html > cdk-diff-output-dev.html`,
+          `FORCE_COLOR=1 npx cdk diff CDKPipelineStack/cdk-pipeline-prod/** | ansi2html > cdk-diff-output-prod.html`,
+          `aws s3 cp cdk-diff-output-dev.html s3://shirokumapower-infra-diff-bucket/${commonConstants.project}/dev-${getFormattedDate()}.html`,
+          `aws s3 cp cdk-diff-output-prod.html s3://shirokumapower-infra-diff-bucket/${commonConstants.project}/prod-${getFormattedDate()}.html`,
         ],
         rolePolicyStatements: [
           new iam.PolicyStatement({
@@ -52,16 +56,39 @@ export class CdkPipelineStack extends Stack {
             ],
             actions: ["ssm:GetParameter*"],
           }),
+          new iam.PolicyStatement({
+            resources: [
+              `arn:aws:s3:::shirokumapower-infra-diff-bucket/*`
+            ],
+            actions: ["s3:PutObject"],
+          }),
         ],
       }),
     });
 
-    cdkPipeline.addStage(devStage);
+    cdkPipeline.addStage(devStage, {
+      pre: [new cdkpipeline.ManualApprovalStep('dev-deployment-approval', {
+        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=dev&date=${getFormattedDate()}`,
+      })],
+    });
 
 
     cdkPipeline.addStage(prodStage, {
-      pre: [new cdkpipeline.ManualApprovalStep('production-deployment-approval')],
+      pre: [new cdkpipeline.ManualApprovalStep('production-deployment-approval', {
+        comment: `Please confirm diff at https://infra.shirokumapower.jp/infra-diff?system=${commonConstants.project}&env=prod&date=${getFormattedDate()}`,
+      })],
     });
 
   }
+}
+
+function getFormattedDate(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');  // Months are zero-indexed
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+
+  return `${year}${month}${day}-${hours}${minutes}`;
 }
